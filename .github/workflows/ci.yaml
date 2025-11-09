@@ -2,12 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-
-permissions:
-  contents: read
-  id-token: write   # required for codecov-action v5 (tokenless on public repos)
 
 jobs:
   test:
@@ -16,72 +11,54 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
+
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      # ---- Install dependencies (Linux/macOS)
+      # --- Install dependencies (Linux/macOS)
       - name: Install dependencies (bash)
         if: runner.os != 'Windows'
         shell: bash
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
-          python -m pip install pytest pytest-cov pytest-mock
-
-      # ---- Install dependencies (Windows)
+          python -m pip install pytest pytest-cov
+      # --- Install dependencies (Windows)
       - name: Install dependencies (pwsh)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
           if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
-          python -m pip install pytest pytest-cov pytest-mock
-
-      # ---- Fresh SQLite (optional; safe with your conftest)
-      - name: Init SQLite schema (bash)
+          python -m pip install pytest pytest-cov
+      # --- Reset and init DB (Linux/macOS)
+      - name: Reset and init SQLite schema (bash)
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          rm -f library.db || true
-          python - <<'PY'
-          import os, database
-          if os.path.exists("library.db"):
-              os.remove("library.db")
-          database.init_database()
-          print("DB ready.")
-          PY
-
-      - name: Init SQLite schema (pwsh)
+          rm -f library.db
+          python -c "import database; database.init_database(); print('DB ready.')"
+      # --- Reset and init DB (Windows)
+      - name: Reset and init SQLite schema (pwsh)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          if (Test-Path library.db) { Remove-Item -Force library.db }
-          python -c "import os, database; import os as _o; import importlib; importlib.reload(database); \
-          if _o.path.exists('library.db'): _o.remove('library.db'); database.init_database(); print('DB ready.')"
-
-      # ---- Run tests with coverage (measure services only; include branch coverage)
+          if (Test-Path library.db) { Remove-Item library.db }
+          python -c "import database; database.init_database(); print('DB ready.')"
+      # --- Run tests with coverage
       - name: Run tests with coverage
         run: |
-          python -m pytest --cov=services --cov-branch --cov-report=term --cov-report=xml --cov-report=html
-
-      - name: Upload htmlcov artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: htmlcov-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: htmlcov
-
-      - name: Upload coverage to Codecov
+          pytest --cov=. --cov-report=xml
+      # --- Upload coverage report to Codecov
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: ./coverage.xml
-          fail_ci_if_error: true
-          # If repo is private, set a secret and uncomment:
-          # token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
