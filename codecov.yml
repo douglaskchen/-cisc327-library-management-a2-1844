@@ -1,0 +1,27 @@
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "0...100"
+  status:
+    project:
+      services-ubuntu-py312:   # this is the gate Codecov shows on the badge
+        target: 80%
+        threshold: 1%
+        flags:
+          - services
+          - ubuntu
+          - py312
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+ignore:
+  - "tests/**"
+  - "sample_test.py"
+  - "routes/**"
+  - "database.py"
+  - ".github/**"
