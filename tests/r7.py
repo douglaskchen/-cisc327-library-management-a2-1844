@@ -1,7 +1,7 @@
 import pytest
 import database
 from datetime import datetime, timedelta
-from library_service import borrow_book_by_patron, return_book_by_patron, get_patron_status_report
+from services.library_service import borrow_book_by_patron, return_book_by_patron, get_patron_status_report
 
 def test_patron_status_current_borrowed():
     """check patron status shows currently borrowed books with due dates"""

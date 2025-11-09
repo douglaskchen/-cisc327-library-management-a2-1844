@@ -1,7 +1,7 @@
 import pytest
 import database
 from datetime import datetime, timedelta
-from library_service import borrow_book_by_patron, return_book_by_patron, calculate_late_fee_for_book
+from services.library_service import borrow_book_by_patron, return_book_by_patron, calculate_late_fee_for_book
 
 def test_return_valid_book():
     """check if patron returns book, availability and record are updated"""

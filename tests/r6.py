@@ -1,6 +1,6 @@
 import pytest
 import database
-from library_service import search_books_in_catalog
+from services.library_service import search_books_in_catalog
 
 def test_search_by_title_partial():
     """check search finds books by partial title case insensitive"""

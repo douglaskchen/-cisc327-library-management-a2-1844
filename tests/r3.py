@@ -1,6 +1,6 @@
 import pytest
 import database
-from library_service import borrow_book_by_patron
+from services.library_service import borrow_book_by_patron
 
 def test_borrow_valid_book():
     """check if borrow record and # of copies is updated"""
