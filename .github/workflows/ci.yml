@@ -2,7 +2,12 @@ name: CI
 
 on:
   push:
+    branches: [ "main" ]
   pull_request:
+
+permissions:
+  contents: read
+  id-token: write   # required for codecov/action v4 when tokenless on public repos
 
 jobs:
   test:
@@ -23,49 +28,40 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # --- Install dependencies (Linux/macOS)
-      - name: Install dependencies (bash)
-        if: runner.os != 'Windows'
-        shell: bash
+      # Install deps
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
-          python -m pip install pytest pytest-cov
+          python -m pip install pytest pytest-cov pytest-mock
 
-      # --- Install dependencies (Windows)
-      - name: Install dependencies (pwsh)
-        if: runner.os == 'Windows'
-        shell: pwsh
+      # Init DB (clean slate)
+      - name: Init SQLite schema
         run: |
-          python -m pip install --upgrade pip
-          if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
-          python -m pip install pytest pytest-cov
+          python - << 'PY'
+          import os, database
+          if os.path.exists("library.db"):
+              os.remove("library.db")
+          database.init_database()
+          print("DB ready.")
+          PY
 
-      # --- Reset and init DB (Linux/macOS)
-      - name: Reset and init SQLite schema (bash)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          rm -f library.db
-          python -c "import database; database.init_database(); print('DB ready.')"
-
-      # --- Reset and init DB (Windows)
-      - name: Reset and init SQLite schema (pwsh)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (Test-Path library.db) { Remove-Item library.db }
-          python -c "import database; database.init_database(); print('DB ready.')"
-
-      # --- Run tests with coverage
+      # Run tests with service-only branch coverage and XML for Codecov
       - name: Run tests with coverage
         run: |
-          pytest --cov=. --cov-report=xml
+          python -m pytest --cov=services --cov-branch --cov-report=term \
+                           --cov-report=xml --cov-report=html
 
-      # --- Upload coverage report to Codecov
+      - name: Upload htmlcov artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: htmlcov-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: htmlcov
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           fail_ci_if_error: true
+          # For private repos set a secret:
+          # token: ${{ secrets.CODECOV_TOKEN }}
