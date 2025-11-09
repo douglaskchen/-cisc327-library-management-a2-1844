@@ -1,5 +1,5 @@
-[![CI](https://github.com/douglaskchen/-cisc327-library-management-a2-1844/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/douglaskchen/-cisc327-library-management-a2-1844/actions/workflows/CI.yml)
-[![codecov](https://codecov.io/gh/douglaskchen/-cisc327-library-management-a2-1844/branch/main/graph/badge.svg?token=abcd1234efgh)](https://codecov.io/gh/douglaskchen/-cisc327-library-management-a2-1844)
+[![CI](https://github.com/douglaskchen/-cisc327-library-management-a2-1844/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/douglaskchen/-cisc327-library-management-a2-1844/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/douglaskchen/-cisc327-library-management-a2-1844/branch/main/graph/badge.svg?token=748fa355-f93a-4ce9-a8b1-46927e49074a)](https://codecov.io/gh/douglaskchen/-cisc327-library-management-a2-1844)
 
 # Library Management System - Flask Web Application with SQLite
 
