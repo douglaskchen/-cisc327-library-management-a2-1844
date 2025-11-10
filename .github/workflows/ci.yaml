@@ -41,14 +41,21 @@ jobs:
           if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
           python -m pip install pytest pytest-cov pytest-mock
       - name: Init SQLite schema
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          python - <<'PY'
-          import os, database
-          if os.path.exists("library.db"):
-              os.remove("library.db")
-          database.init_database()
-          print("DB ready.")
-          PY
+          if (Test-Path .\library.db) { Remove-Item -Force .\library.db }
+          $code = @"
+          import os, sys
+          sys.path.insert(0, r'${{ github.workspace }}')
+          import database
+          if os.path.exists('library.db'):
+            os.remove('library.db')
+            database.init_database()
+          print('DB ready.')
+          "@
+          Set-Content -Path init_db.py -Value $code -Encoding UTF8
+          python init_db.py
       - name: Run tests with coverage
         run: |
           python -m pytest --cov=services --cov-branch --cov-report=term --cov-report=xml --cov-report=html
