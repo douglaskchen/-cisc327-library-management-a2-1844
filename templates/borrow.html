@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Borrow Book</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; }
+        .btn { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+        .flash-success { color: green; }
+        .flash-error { color: red; }
+    </style>
+</head>
+<body>
+
+<h2>Borrow a Book</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, msg in messages %}
+      <p class="flash-{{ category }}">{{ msg }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST" action="/borrow">
+    <div class="form-group">
+        <label for="patron_id">Patron ID</label>
+        <input type="text" id="patron_id" name="patron_id" maxlength="6" required>
+    </div>
+
+    <div class="form-group">
+        <label for="book_id">Select Book</label>
+        <select id="book_id" name="book_id" required>
+            {% for book in books %}
+                <option value="{{ book['id'] }}">{{ book['title'] }} ({{ book['available_copies'] }} available)</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn">Borrow</button>
+</form>
+
+</body>
+</html>

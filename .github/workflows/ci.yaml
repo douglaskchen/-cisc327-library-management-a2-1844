@@ -64,4 +64,4 @@ jobs:
           files: ./coverage.xml
           flags: services,ubuntu,py312
           fail_ci_if_error: true
-          # token: ${{ secrets.CODECOV_TOKEN }}  # only if repo is private
+          token: ${{ secrets.CODECOV_TOKEN }}

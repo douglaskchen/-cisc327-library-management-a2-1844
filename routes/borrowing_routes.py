@@ -3,35 +3,35 @@ Borrowing Routes - Book borrowing and returning endpoints
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from services.library_service import borrow_book_by_patron, return_book_by_patron
+from services.library_service import (
+    borrow_book_by_patron,
+    return_book_by_patron,
+    get_all_books
+)
 
 borrowing_bp = Blueprint('borrowing', __name__)
 
-@borrowing_bp.route('/borrow', methods=['POST'])
+@borrowing_bp.route('/borrow', methods=['GET', 'POST'])
 def borrow_book():
-    """
-    Process book borrowing request.
-    Web interface for R2: Book Borrowing
-    """
-    patron_id = request.form.get('patron_id', '').strip()
-    
-    try:
-        book_id = int(request.form.get('book_id', ''))
-    except (ValueError, TypeError):
-        flash('Invalid book ID.', 'error')
-        return redirect(url_for('catalog.catalog'))
-    
-    # Use business logic function
-    success, message = borrow_book_by_patron(patron_id, book_id)
-    
-    flash(message, 'success' if success else 'error')
-    return redirect(url_for('catalog.catalog'))
+    if request.method == "GET":
+        books = get_all_books()
+        return render_template("borrow.html", books=books)
+
+    # POST
+    patron_id = request.form.get("patron_id")
+    book_id   = request.form.get("book_id")
+
+    success, message = borrow_book_by_patron(patron_id, int(book_id))
+    flash(message, "success" if success else "error")
+
+    books = get_all_books()
+    return render_template("borrow.html", books=books)
+
 
 @borrowing_bp.route('/return', methods=['GET', 'POST'])
 def return_book():
     """
     Process book return.
-    Web interface for R3: Book Return Processing
     """
     if request.method == 'GET':
         return render_template('return_book.html')
@@ -44,7 +44,6 @@ def return_book():
         flash('Invalid book ID.', 'error')
         return render_template('return_book.html')
     
-    # Use business logic function
     success, message = return_book_by_patron(patron_id, book_id)
     
     flash(message, 'success' if success else 'error')
